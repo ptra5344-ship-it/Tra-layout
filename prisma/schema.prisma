@@ -1,0 +1,55 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+
+enum BaseType { war trophy farming hybrid cwl }
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+}
+
+model Base {
+  id          String   @id @default(cuid())
+  title       String
+  townHall    Int
+  type        BaseType
+  description String   @default("")
+  imageUrl    String
+  layoutLink  String
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tags        Tag[]
+  likeRows    Like[]
+  viewRows    View[]
+  @@index([townHall, type])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  bases Base[]
+}
+
+model Like {
+  id          String   @id @default(cuid())
+  baseId      String
+  fingerprint String
+  createdAt   DateTime @default(now())
+  base        Base     @relation(fields: [baseId], references: [id], onDelete: Cascade)
+  @@unique([baseId, fingerprint])
+}
+
+model View {
+  id          String   @id @default(cuid())
+  baseId      String
+  fingerprint String
+  createdAt   DateTime @default(now())
+  base        Base     @relation(fields: [baseId], references: [id], onDelete: Cascade)
+  @@index([baseId, fingerprint])
+}
